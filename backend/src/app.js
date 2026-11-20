@@ -9,32 +9,31 @@ app.use(express.json());
 
 // Welcome route
 app.get("/", (req, res) => {
-    res.json({
-        message: "IT Asset Management API is running"
-    });
+  res.json({
+    message: "IT Asset Management API is running",
+  });
 });
 
 // Health check route
 app.get("/api/health", async (req, res) => {
-    try {
-        const pool = require("./config/db");
+  try {
+    const pool = require("./config/db");
 
-        const result = await pool.query("SELECT NOW()");
+    const result = await pool.query("SELECT NOW()");
 
-        res.json({
-            status: "success",
-            message: "Backend and PostgreSQL connected",
-            database_time: result.rows[0].now
-        });
+    res.json({
+      status: "success",
+      message: "Backend and PostgreSQL connected",
+      database_time: result.rows[0].now,
+    });
+  } catch (error) {
+    console.error(error);
 
-    } catch (error) {
-        console.error(error);
-
-        res.status(500).json({
-            status: "error",
-            message: "Database connection failed"
-        });
-    }
+    res.status(500).json({
+      status: "error",
+      message: "Database connection failed",
+    });
+  }
 });
 
 module.exports = app;
