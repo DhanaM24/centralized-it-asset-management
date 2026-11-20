@@ -2,16 +2,16 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    getBranches,
-    getBranch,
-    addBranch,
-    editBranch,
-    removeBranch
+  getBranches,
+  getBranch,
+  addBranch,
+  editBranch,
+  removeBranch,
 } = require("../controllers/branchController");
 
 const {
-    authenticateToken,
-    authorizeRoles
+  authenticateToken,
+  authorizeRoles,
 } = require("../middleware/authMiddleware");
 
 router.use(authenticateToken);
