@@ -68,3 +68,37 @@ module.exports = {
   addOrganization,
   editOrganization,
 };
+
+const Organization = require("../models/organizationModel");
+
+exports.getOrganizations = async (req, res) => {
+  try {
+    const organizations = await Organization.find();
+
+    res.status(200).json({
+      success: true,
+      data: organizations,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.createOrganization = async (req, res) => {
+  try {
+    const organization = await Organization.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: organization,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

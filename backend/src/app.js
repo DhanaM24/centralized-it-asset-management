@@ -1,7 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-
+const organizationRoutes = require("./routes/organizationRoutes");
+const branchRoutes = require("./routes/branchRoutes");
 const app = express();
+app.use("/api/organizations", organizationRoutes);
+app.use("/api/branches", branchRoutes);
 
 // Middleware
 app.use(cors());
