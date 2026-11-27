@@ -1,48 +1,72 @@
 import { Bell, Search, UserCircle } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
+
+const pageTitles = {
+  "/":             { title: "Dashboard",        sub: "System overview and statistics" },
+  "/users":        { title: "User Management",  sub: "Admin and staff accounts" },
+  "/organization": { title: "Organization",     sub: "Company information" },
+  "/branches":     { title: "Branches",         sub: "Head Office and branch offices" },
+  "/assets":       { title: "Assets",           sub: "Company hardware inventory" },
+  "/issues":       { title: "Issue Management", sub: "Hardware issue reports" },
+  "/repairs":      { title: "Repairs",          sub: "Inspection and repair records" },
+  "/reports":      { title: "Reports",          sub: "Asset and issue reports" },
+  "/profile":      { title: "My Profile",       sub: "Account settings" },
+  "/notifications":{ title: "Notifications",    sub: "System alerts and updates" },
+};
 
 function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const path = location.pathname.startsWith("/issues/")
+    ? "/issues"
+    : location.pathname;
+
+  const { title, sub } = pageTitles[path] || { title: "IT Asset Management", sub: "" };
+
   return (
-    <header className="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between">
+    <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
       <div>
-        <h2 className="text-xl font-semibold text-slate-800">
-          Dashboard
-        </h2>
-        <p className="text-sm text-slate-500">
-          Welcome to IT Asset Management System
-        </p>
+        <h2 className="text-lg font-semibold text-slate-800 leading-tight">{title}</h2>
+        {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
       </div>
 
-      <div className="flex items-center gap-6">
-        <div className="hidden md:flex items-center bg-slate-100 rounded-lg px-3 py-2">
-          <Search size={18} className="text-slate-400" />
+      <div className="flex items-center gap-4">
+        {/* Search */}
+        <div className="hidden md:flex items-center bg-slate-100 rounded-lg px-3 py-1.5 gap-2">
+          <Search size={15} className="text-slate-400" />
           <input
             type="text"
             placeholder="Search..."
-            className="bg-transparent outline-none px-2 text-sm w-40"
+            className="bg-transparent outline-none text-sm w-36"
           />
         </div>
 
-        <button className="relative text-slate-600">
-          <Bell size={22} />
+        {/* Notifications bell */}
+        <button
+          onClick={() => navigate("/notifications")}
+          className="relative text-slate-500 hover:text-slate-700 transition"
+          title="Notifications"
+        >
+          <Bell size={20} />
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        <div className="flex items-center gap-2">
-          <UserCircle size={35} className="text-blue-600" />
-
-          <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-slate-800">
-              Admin User
-            </p>
-            <p className="text-xs text-slate-500">
-              Administrator
-            </p>
+        {/* Avatar */}
+        <button
+          onClick={() => navigate("/profile")}
+          className="flex items-center gap-2 hover:opacity-80 transition"
+          title="Profile"
+        >
+          <UserCircle size={32} className="text-blue-600" />
+          <div className="hidden sm:block text-left">
+            <p className="text-sm font-semibold text-slate-800 leading-tight">Admin User</p>
+            <p className="text-xs text-slate-400">Administrator</p>
           </div>
-        </div>
+        </button>
       </div>
     </header>
   );
 }
 
 export default Navbar;
-
