@@ -12,20 +12,31 @@ import {
   LogOut,
   Package,
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const menuItems = [
-  { name: "Dashboard",        path: "/",             icon: LayoutDashboard, end: true },
-  { name: "User Management",  path: "/users",        icon: Users },
-  { name: "Organization",     path: "/organization", icon: Building2 },
-  { name: "Branches",         path: "/branches",     icon: GitBranch },
-  { name: "Assets",           path: "/assets",       icon: Monitor },
-  { name: "Issue Management", path: "/issues",       icon: ClipboardList },
-  { name: "Repairs",          path: "/repairs",      icon: Wrench },
-  { name: "Reports",          path: "/reports",      icon: BarChart3 },
+  { name: "Dashboard",        path: "/",             icon: LayoutDashboard, end: true, roles: ["Admin", "IT Staff", "Branch User"] },
+  { name: "User Management",  path: "/users",        icon: Users,           roles: ["Admin", "IT Staff"] },
+  { name: "Organization",     path: "/organization", icon: Building2,       roles: ["Admin", "IT Staff"] },
+  { name: "Branches",         path: "/branches",     icon: GitBranch,       roles: ["Admin", "IT Staff"] },
+  { name: "Assets",           path: "/assets",       icon: Monitor,         roles: ["Admin", "IT Staff", "Branch User"] },
+  { name: "Issue Management", path: "/issues",       icon: ClipboardList,   roles: ["Admin", "IT Staff", "Branch User"] },
+  { name: "Repairs",          path: "/repairs",      icon: Wrench,          roles: ["Admin", "IT Staff", "Branch User"] },
+  { name: "Reports",          path: "/reports",      icon: BarChart3,       roles: ["Admin", "IT Staff"] },
 ];
 
 function Sidebar() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const visibleItems = menuItems.filter(
+    (item) => !user?.role || item.roles.includes(user.role)
+  );
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
 
   return (
     <aside className="w-64 min-h-screen bg-slate-950 text-white flex flex-col shrink-0">
@@ -46,7 +57,7 @@ function Sidebar() {
       <nav className="flex-1 p-4 overflow-y-auto">
         <p className="text-xs uppercase text-slate-500 mb-3 px-1 tracking-wider">Main Menu</p>
 
-        {menuItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
@@ -82,7 +93,7 @@ function Sidebar() {
         </NavLink>
 
         <button
-          onClick={() => navigate("/login")}
+          onClick={handleLogout}
           className="flex items-center gap-3 text-red-400 hover:text-red-300 hover:bg-slate-800
                      px-4 py-2.5 rounded-lg text-sm transition-all w-full"
         >

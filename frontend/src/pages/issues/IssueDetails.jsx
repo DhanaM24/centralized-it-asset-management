@@ -1,121 +1,148 @@
-import { useParams } from "react-router-dom";
-import {
-  ArrowLeft, ClipboardList, Monitor, Building2,
-  User, Clock, Wrench, AlertTriangle, CheckCircle
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { ArrowLeft, Wrench, ClipboardList } from "lucide-react";
 import MainLayout from "../../components/layout/MainLayout";
+import { api } from "../../services/api";
 
 function IssueDetails() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const [issue, setIssue] = useState(null);
+  const [repairs, setRepairs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadDetails = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const [issueData, repairData] = await Promise.all([
+          api.get(`/api/issues/${id}`),
+          api.get(`/api/repairs?issue_id=${id}`),
+        ]);
+        setIssue(issueData);
+        setRepairs(repairData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDetails();
+  }, [id]);
 
   return (
     <MainLayout>
       <div className="space-y-6">
-        {/* Back + header */}
-        <div>
-          <button
-            onClick={() => navigate("/issues")}
-            className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 mb-4 transition"
-          >
-            <ArrowLeft size={16} /> Back to Issues
-          </button>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">Issue Details</h1>
-              <p className="text-slate-500 text-sm mt-0.5">Issue ID: <span className="font-mono">{id}</span></p>
-            </div>
-            <div className="flex gap-2">
-              <button className="text-sm border border-slate-200 text-slate-600 px-4 py-2 rounded-lg hover:bg-slate-50 transition">
-                Edit
-              </button>
-              <button className="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
-                Mark Resolved
-              </button>
-            </div>
-          </div>
-        </div>
+        <Link
+          to="/issues"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
+        >
+          <ArrowLeft size={16} /> Back to Issues
+        </Link>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Main details */}
-          <div className="xl:col-span-2 space-y-5">
-            {/* Issue info */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-5">
-                <ClipboardList size={18} className="text-orange-500" /> Issue Information
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { label: "Issue Title",   value: "—", icon: ClipboardList },
-                  { label: "Priority",      value: "—", icon: AlertTriangle },
-                  { label: "Status",        value: "—", icon: CheckCircle },
-                  { label: "Reported Date", value: "—", icon: Clock },
-                  { label: "Branch",        value: "—", icon: Building2 },
-                  { label: "Reported By",   value: "—", icon: User },
-                ].map((f) => {
-                  const Icon = f.icon;
-                  return (
-                    <div key={f.label} className="bg-slate-50 rounded-lg p-4">
-                      <p className="text-xs text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1.5">
-                        <Icon size={12} /> {f.label}
-                      </p>
-                      <p className="text-sm font-medium text-slate-700">{f.value}</p>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-12 text-center text-sm text-slate-400">
+            Loading issue details...
+          </div>
+        ) : issue ? (
+          <>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 text-blue-600 p-3 rounded-xl">
+                    <ClipboardList size={22} />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-slate-800">{issue.issue_title}</h1>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Issue #{issue.issue_id} • Reported {new Date(issue.reported_at).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                    {issue.priority} Priority
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                    {issue.status}
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                  <p className="text-xs text-slate-400 uppercase">Branch</p>
+                  <p className="text-sm font-medium text-slate-700 mt-0.5">{issue.branch_name}</p>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                  <p className="text-xs text-slate-400 uppercase">Asset</p>
+                  <p className="text-sm font-medium text-slate-700 mt-0.5">
+                    {issue.asset_name || "General / Unspecified"}
+                    {issue.serial_number ? ` (${issue.serial_number})` : ""}
+                  </p>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
+                  <p className="text-xs text-slate-400 uppercase">Reported By</p>
+                  <p className="text-sm font-medium text-slate-700 mt-0.5">
+                    {issue.reported_by_name || "—"}
+                  </p>
+                </div>
+              </div>
+
+              {issue.description && (
+                <div>
+                  <p className="text-xs text-slate-400 uppercase mb-1">Description</p>
+                  <p className="text-sm text-slate-700 whitespace-pre-line">{issue.description}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="font-semibold text-slate-800 flex items-center gap-2">
+                  <Wrench size={18} className="text-blue-500" /> Inspection & Repair History ({repairs.length})
+                </h2>
+              </div>
+              {repairs.length === 0 ? (
+                <div className="py-12 text-center text-sm text-slate-400">
+                  No repairs scheduled or recorded for this issue yet.
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {repairs.map((r) => (
+                    <div key={r.repair_id} className="p-5 flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">
+                          Technician: {r.assigned_to_name || "Unassigned"}
+                        </p>
+                        <p className="text-sm text-slate-600 mt-1">{r.repair_notes || "No notes"}</p>
+                        <p className="text-xs text-slate-400 mt-1">
+                          Scheduled: {r.scheduled_date ? r.scheduled_date.slice(0, 10) : "—"} •
+                          Completed: {r.completed_date ? r.completed_date.slice(0, 10) : "—"} •
+                          Cost: {r.cost ? `LKR ${r.cost}` : "—"}
+                        </p>
+                      </div>
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                        {r.status}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="mt-4 bg-slate-50 rounded-lg p-4">
-                <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">Description</p>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Connect the backend API to load issue details.
-                </p>
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {/* Asset info */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-5">
-                <Monitor size={18} className="text-green-500" /> Related Asset
-              </h2>
-              <div className="flex flex-col items-center py-6 text-slate-400">
-                <Monitor size={36} className="mb-2 text-slate-200" />
-                <p className="text-sm">Asset details will appear here</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar: Repair history */}
-          <div className="space-y-5">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-5">
-                <Wrench size={18} className="text-blue-500" /> Repair History
-              </h2>
-              <div className="flex flex-col items-center py-8 text-slate-400">
-                <Wrench size={36} className="mb-2 text-slate-200" />
-                <p className="text-sm text-center">No repair records yet</p>
-              </div>
-              <button className="w-full mt-2 border border-dashed border-slate-300 text-slate-500 text-sm py-2.5 rounded-lg hover:bg-slate-50 transition">
-                + Schedule Repair
-              </button>
-            </div>
-
-            {/* Timeline */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <h2 className="font-semibold text-slate-800 flex items-center gap-2 mb-5">
-                <Clock size={18} className="text-purple-500" /> Activity Timeline
-              </h2>
-              <div className="flex flex-col items-center py-6 text-slate-400">
-                <Clock size={36} className="mb-2 text-slate-200" />
-                <p className="text-sm">Activity will appear here</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          </>
+        ) : null}
       </div>
     </MainLayout>
   );
 }
 
 export default IssueDetails;
-

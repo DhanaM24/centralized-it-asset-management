@@ -1,5 +1,6 @@
 import { Bell, Search, UserCircle } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const pageTitles = {
   "/":             { title: "Dashboard",        sub: "System overview and statistics" },
@@ -17,6 +18,7 @@ const pageTitles = {
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   const path = location.pathname.startsWith("/issues/")
     ? "/issues"
@@ -60,8 +62,10 @@ function Navbar() {
         >
           <UserCircle size={32} className="text-blue-600" />
           <div className="hidden sm:block text-left">
-            <p className="text-sm font-semibold text-slate-800 leading-tight">Admin User</p>
-            <p className="text-xs text-slate-400">Administrator</p>
+            <p className="text-sm font-semibold text-slate-800 leading-tight">
+              {user?.full_name || "User"}
+            </p>
+            <p className="text-xs text-slate-400">{user?.role || ""}</p>
           </div>
         </button>
       </div>

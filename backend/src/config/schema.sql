@@ -122,7 +122,7 @@ VALUES
   (1, 'Trincomalee',               'ETFB-TRI', 'Trincomalee',  'Branch'),
   (1, 'Ampara',                    'ETFB-AMP', 'Ampara',       'Branch');
 
--- ── Sample admin user (password: Admin@1234 – bcrypt hash placeholder) ──
+-- ── Sample admin user (password: Admin@1234) ─────────────────────────
 INSERT INTO users (branch_id, full_name, email, password_hash, role) VALUES
-  (1, 'System Administrator', 'admin@etfb.lk', '$2b$10$PLACEHOLDER_HASH_REPLACE_ME', 'Admin');
+  (1, 'System Administrator', 'admin@etfb.lk', '$2b$10$Q7E95V3J3clPrywktfzNq.Bc00Q0zMFUxLL66gIVYY./I5xS7khiy', 'Admin');
 

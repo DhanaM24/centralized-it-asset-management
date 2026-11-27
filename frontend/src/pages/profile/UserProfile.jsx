@@ -1,99 +1,152 @@
-import { UserCircle, Camera, Mail, Phone, Building2, Shield } from "lucide-react";
+import { useState } from "react";
+import { UserCircle, Lock, CheckCircle } from "lucide-react";
 import MainLayout from "../../components/layout/MainLayout";
+import { useAuth } from "../../context/AuthContext";
+import { api } from "../../services/api";
 
 function UserProfile() {
+  const { user } = useAuth();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirmation do not match.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await api.put("/api/auth/password", {
+        currentPassword,
+        newPassword,
+      });
+      setSuccess(res.message || "Password updated successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="max-w-3xl space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">My Profile</h1>
-          <p className="text-slate-500 text-sm mt-0.5">View and update your account details.</p>
+          <p className="text-slate-500 text-sm mt-0.5">Account details and password settings.</p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          {/* Avatar card */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col items-center text-center">
-            <div className="relative mb-4">
-              <UserCircle size={80} className="text-blue-600" />
-              <button className="absolute bottom-0 right-0 bg-white border border-slate-200 rounded-full p-1.5 shadow-sm hover:bg-slate-50 transition">
-                <Camera size={14} className="text-slate-500" />
-              </button>
-            </div>
-            <h2 className="font-bold text-slate-800 text-lg">Admin User</h2>
-            <p className="text-slate-500 text-sm">admin@etfb.lk</p>
-            <span className="mt-3 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1">
-              <Shield size={11} /> Administrator
-            </span>
-            <div className="w-full mt-6 pt-5 border-t border-slate-100 text-left space-y-2">
-              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-3">Branch</p>
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <Building2 size={15} className="text-slate-400" />
-                Head Office – Narahenpita
-              </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center gap-4 mb-6">
+            <UserCircle size={56} className="text-blue-600 shrink-0" />
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">{user?.full_name}</h2>
+              <p className="text-sm text-slate-500">{user?.email}</p>
             </div>
           </div>
 
-          {/* Edit form */}
-          <div className="xl:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-            <h2 className="font-semibold text-slate-800 mb-6">Account Information</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {[
-                { label: "Full Name",   placeholder: "Admin User",    icon: UserCircle, type: "text" },
-                { label: "Email",       placeholder: "admin@etfb.lk", icon: Mail,       type: "email" },
-                { label: "Phone",       placeholder: "+94 11 000 0000",icon: Phone,      type: "tel" },
-                { label: "Role",        placeholder: "Administrator",  icon: Shield,     type: "text" },
-              ].map((f) => {
-                const Icon = f.icon;
-                return (
-                  <div key={f.label}>
-                    <label className="block text-xs text-slate-500 font-medium mb-1.5 uppercase tracking-wide">
-                      {f.label}
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                        <Icon size={15} />
-                      </span>
-                      <input
-                        type={f.type}
-                        placeholder={f.placeholder}
-                        className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm
-                                   bg-slate-50 text-slate-700 focus:outline-none focus:ring-2
-                                   focus:ring-blue-500 focus:border-transparent focus:bg-white transition"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-4">
+              <p className="text-xs text-slate-400 uppercase">Role</p>
+              <p className="text-sm font-semibold text-slate-700 mt-1">{user?.role}</p>
             </div>
-
-            {/* Change password */}
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <h3 className="font-semibold text-slate-700 mb-4">Change Password</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {["Current Password", "New Password", "Confirm New Password"].map((lbl) => (
-                  <div key={lbl} className={lbl === "Confirm New Password" ? "sm:col-span-2 sm:max-w-sm" : ""}>
-                    <label className="block text-xs text-slate-500 font-medium mb-1.5 uppercase tracking-wide">{lbl}</label>
-                    <input
-                      type="password"
-                      placeholder="••••••••"
-                      className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm
-                                 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2
-                                 focus:ring-blue-500 focus:border-transparent focus:bg-white transition"
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-4">
+              <p className="text-xs text-slate-400 uppercase">Branch</p>
+              <p className="text-sm font-semibold text-slate-700 mt-1">
+                {user?.branch_name || "Unassigned"}
+              </p>
             </div>
-
-            <div className="mt-6 flex gap-3">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition shadow-sm">
-                Save Changes
-              </button>
-              <button className="border border-slate-200 text-slate-600 text-sm px-5 py-2.5 rounded-lg hover:bg-slate-50 transition">
-                Cancel
-              </button>
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-4">
+              <p className="text-xs text-slate-400 uppercase">Account Status</p>
+              <p className="text-sm font-semibold text-green-600 mt-1">
+                {user?.is_active ? "Active" : "Inactive"}
+              </p>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-lg p-4">
+              <p className="text-xs text-slate-400 uppercase">Member Since</p>
+              <p className="text-sm font-semibold text-slate-700 mt-1">
+                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
+              </p>
             </div>
           </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-4">
+            <Lock size={18} className="text-blue-500" /> Change Password
+          </h3>
+
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2">
+              <CheckCircle size={16} /> {success}
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Current Password
+              </label>
+              <input
+                type="password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                New Password
+              </label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-60"
+            >
+              {saving ? "Updating..." : "Update Password"}
+            </button>
+          </form>
         </div>
       </div>
     </MainLayout>
@@ -101,4 +154,3 @@ function UserProfile() {
 }
 
 export default UserProfile;
-

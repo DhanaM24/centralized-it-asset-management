@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Package, Mail, Lock, LogIn } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 function Login() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -19,12 +23,14 @@ function Login() {
 
     setIsLoading(true);
 
-    // TODO: Replace with real API call
-    setTimeout(() => {
+    try {
+      await login(email.trim(), password);
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err.message || "Invalid credentials. Please try again.");
+    } finally {
       setIsLoading(false);
-      // Placeholder: show error for now
-      setError("Invalid credentials. Please try again.");
-    }, 1500);
+    }
   };
 
   return (
