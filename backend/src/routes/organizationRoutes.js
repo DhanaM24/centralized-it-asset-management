@@ -7,6 +7,9 @@ const organizationController = require("../controllers/organizationController");
 router.get("/", organizationController.getOrganizations);
 
 // Create organization
-router.post("/", organizationController.createOrganization);
+router.post("/", organizationController.addOrganization);
+
+// Update organization
+router.put("/:id", organizationController.editOrganization);
 
 module.exports = router;

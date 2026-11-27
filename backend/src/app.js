@@ -3,12 +3,14 @@ const cors = require("cors");
 const organizationRoutes = require("./routes/organizationRoutes");
 const branchRoutes = require("./routes/branchRoutes");
 const app = express();
-app.use("/api/organizations", organizationRoutes);
-app.use("/api/branches", branchRoutes);
 
-// Middleware
+// Middleware (must be before routes)
 app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use("/api/organizations", organizationRoutes);
+app.use("/api/branches", branchRoutes);
 
 // Welcome route
 app.get("/", (req, res) => {
